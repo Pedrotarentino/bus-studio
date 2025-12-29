@@ -1,43 +1,43 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+/**
+ * Lokale analysefunctie die storingen automatisch categoriseert.
+ * Hiermee is er geen externe API-sleutel of 'Jekyll' configuratie meer nodig.
+ */
+export const localAnalyzeMalfunction = (description: string) => {
+  const desc = description.toLowerCase();
+  let category = "Algemeen";
+  let severity: 'Laag' | 'Gemiddeld' | 'Hoog' | 'Kritiek' = "Gemiddeld";
+  let suggestion = "Controleer het voertuig op de aangegeven punten.";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
-export const analyzeMalfunction = async (description: string) => {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Analyseer de volgende busstoring beschrijving en geef een categorie, urgentie (Laag, Gemiddeld, Hoog, Kritiek) en een korte suggestie voor de monteur. Beschrijving: "${description}"`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            category: {
-              type: Type.STRING,
-              description: "De categorie van de storing (bijv. Motor, Elektrisch, Interieur, Remmen).",
-            },
-            severity: {
-              type: Type.STRING,
-              description: "De ernst van de storing: Laag, Gemiddeld, Hoog of Kritiek.",
-            },
-            suggestion: {
-              type: Type.STRING,
-              description: "Een korte suggestie voor herstel.",
-            },
-          },
-          required: ["category", "severity", "suggestion"],
-        },
-      },
-    });
-
-    return JSON.parse(response.text);
-  } catch (error) {
-    console.error("Gemini Analysis Error:", error);
-    return {
-      category: "Onbekend",
-      severity: "Gemiddeld",
-      suggestion: "Geen AI suggestie beschikbaar.",
-    };
+  // Regels voor automatische categorisering en prioriteit
+  if (desc.includes("motor") || desc.includes("start") || desc.includes("olie")) {
+    category = "Motor";
+    severity = "Hoog";
+    suggestion = "Niet mee rijden indien lampjes branden. Controleer vloeistofniveaus.";
+  } else if (desc.includes("rem") || desc.includes("stoppen") || desc.includes("lucht")) {
+    category = "Remmen";
+    severity = "Kritiek";
+    suggestion = "VEILIGHEIDSRISICO: Stop de bus onmiddellijk en bel de technische dienst.";
+  } else if (desc.includes("deur") || desc.includes("open") || desc.includes("klem")) {
+    category = "Carrosserie";
+    severity = "Gemiddeld";
+    suggestion = "Controleer de deursensoren en de noodbediening.";
+  } else if (desc.includes("lamp") || desc.includes("licht") || desc.includes("elektra") || desc.includes("dashboard")) {
+    category = "Elektrisch";
+    severity = "Laag";
+    suggestion = "Mogelijk een defecte zekering of lampje. Kan vaak bij de volgende beurt.";
+  } else if (desc.includes("verwarming") || desc.includes("koud") || desc.includes("airco") || desc.includes("heet")) {
+    category = "Interieur";
+    severity = "Laag";
+    suggestion = "Controleer de klimaatinstellingen en filters.";
   }
+
+  // Extra check voor kritieke situaties
+  if (desc.includes("brand") || desc.includes("rook") || desc.includes("vuur") || desc.includes("stinkt")) {
+    severity = "Kritiek";
+    category = "Brandgevaar";
+    suggestion = "EVACUEER DE BUS. Gebruik de brandblusser indien veilig en bel 112.";
+  }
+
+  return { category, severity, suggestion };
 };

@@ -1,5 +1,5 @@
 {
-  "name": "Copy of Bus Storingen Tracker",
-  "description": "Een professionele applicatie voor buschauffeurs en monteurs om storingen te registreren, te analyseren met AI en overzichten te bekijken.",
+  "name": "Bus Storingen",
+  "description": "Eenvoudige app voor chauffeurs om storingen te melden zonder externe afhankelijkheden.",
   "requestFramePermissions": []
 }
